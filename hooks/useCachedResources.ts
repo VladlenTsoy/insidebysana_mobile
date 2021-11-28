@@ -1,33 +1,31 @@
-import { FontAwesome } from '@expo/vector-icons';
+import {FontAwesome} from '@expo/vector-icons';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import * as React from 'react';
+import {useState, useEffect} from 'react';
+import {useFonts, Montserrat_300Light} from '@expo-google-fonts/montserrat';
 
 export default function useCachedResources() {
-  const [isLoadingComplete, setLoadingComplete] = React.useState(false);
+    const [isLoadingComplete, setLoadingComplete] = useState(false);
+    const [fontsLoaded] = useFonts({Montserrat_300Light});
 
-  // Load any resources or data that we need prior to rendering the app
-  React.useEffect(() => {
-    async function loadResourcesAndDataAsync() {
-      try {
-        SplashScreen.preventAutoHideAsync();
+    // Загрузите любые ресурсы или данные, которые нам нужны, до рендеринга приложения.
+    useEffect(() => {
+        (async () => {
+            try {
+                await SplashScreen.preventAutoHideAsync();
+                // Load fonts
+                await Font.loadAsync({
+                    ...FontAwesome.font,
+                });
+            } catch (e) {
+                // Мы можем захотеть предоставить эту информацию об ошибке в службу отчетов об ошибках
+                console.warn(e);
+            } finally {
+                setLoadingComplete(true);
+                await SplashScreen.hideAsync();
+            }
+        })()
+    }, []);
 
-        // Load fonts
-        await Font.loadAsync({
-          ...FontAwesome.font,
-          'space-mono': require('../assets/fonts/SpaceMono-Regular.ttf'),
-        });
-      } catch (e) {
-        // We might want to provide this error information to an error reporting service
-        console.warn(e);
-      } finally {
-        setLoadingComplete(true);
-        SplashScreen.hideAsync();
-      }
-    }
-
-    loadResourcesAndDataAsync();
-  }, []);
-
-  return isLoadingComplete;
+    return isLoadingComplete && fontsLoaded;
 }
